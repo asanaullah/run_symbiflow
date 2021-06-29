@@ -58,7 +58,7 @@ ${VERILOG_FILE}.net: ${VERILOG_FILE}.eblif
 
 
 ${VERILOG_FILE}.eblif:${VERILOG_FILE}.json
-	${CMAKE} -E env symbiflow-arch-defs_SOURCE_DIR=${SYMBIFLOW_DIR} OUT_EBLIF=$@ ${YOSYS} -p "read_json $<; tcl ${SYNTH_SCRIPTS_DIR}/conv.tcl"
+	${CMAKE} -E env symbiflow-arch-defs_SOURCE_DIR=${SYMBIFLOW_DIR} OUT_EBLIF=$@ ${YOSYS} -p "read_json $<; tcl ${SYNTH_SCRIPTS_DIR}/conv.tcl; write_edif ${VERILOG_FILE}.edif"
 
 ${VERILOG_FILE}.json:  ${VERILOG_FILE}_synth.json
 	python3 ${SYMBIFLOW_DIR}/utils/split_inouts.py -i $< -o $@
