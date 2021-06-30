@@ -25,6 +25,8 @@ GENFASM=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/genfasm
 VPR_FLAGS= --echo_file on --max_router_iterations 500 --routing_failure_predictor off --router_high_fanout_threshold -1 --constant_net_method route --route_chan_width 500 --router_heap bucket --clock_modeling route --place_delta_delay_matrix_calculation_method dijkstra --place_delay_model delta --router_lookahead extended_map --check_route quick --strict_checks off --allow_dangling_combinational_nodes on --disable_errors check_unbuffered_edges:check_route --congested_routing_iteration_threshold 0.8 --incremental_reroute_delay_ripup off --base_cost_type delay_normalized_length_bounded --bb_factor 10 --acc_fac 0.7 --astar_fac 1.8 --initial_pres_fac 2.828 --pres_fac_mult 1.2 --check_rr_graph off --suppress_warnings noisy_warnings.log,sum_pin_class:check_unbuffered_edges:load_rr_indexed_data_T_values:check_rr_node:trans_per_R:check_route:set_rr_graph_tool_comment:calculate_average_switch
 
 
+
+
 .PHONY: all 
 .PHONY: prog
 .PHONY: bit
@@ -38,12 +40,16 @@ VPR_FLAGS= --echo_file on --max_router_iterations 500 --routing_failure_predicto
 .PHONY: build_symbiflow
 
 
+
+
 all: build_symbiflow extract_device_graph synth pack constrain place route fasm bit prog
 
 
 prog: bitstream
 	${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/openocd -f ${SYMBIFLOW_DIR}/third_party/prjxray/utils/openocd/board-digilent-basys3.cfg -c "init ; pld load 0 ${VERILOG_FILE}.bit ; exit"
 	
+
+
 
 bitstream: ${VERILOG_FILE}.bit
 
