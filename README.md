@@ -4,7 +4,7 @@ Build steps:
 
  - Clone the repository using ```git clone --recursive https://github.com/asanaullah/run_symbiflow```
  - Change directory ```cd run_symbiflow```
- - Run ```make all```. This will build Symbiflow, extract device files and then synthesize, pack, place and route the design
+ - Run ```make all```. This will build Symbiflow, extract device files, synthesize, pack, place, route, generated the FPGA assembly file, generate the bitstream, and finally program the board.
  
  
 
