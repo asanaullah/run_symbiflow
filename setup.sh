@@ -9,7 +9,7 @@ ${PWD}/../gcc-4.8.2/configure --prefix=${PWD}/../gcc --enable-languages=c,c++  -
 make -j8
 make install
 cd ..
-#export CC="${PWD}/gcc/bin/gcc"
-#export CXX="${PWD}/gcc/bin/g++"
+export CC="${PWD}/gcc/bin/gcc"
+export CXX="${PWD}/gcc/bin/g++"
 
 
