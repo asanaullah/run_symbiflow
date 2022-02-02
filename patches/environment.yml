@@ -12,7 +12,7 @@ dependencies:
   - litex-hub::prjxray-tools
   - litex-hub::prjxray-db
   - litex-hub::vtr-optimized
-  - litex-hub::yosys
+  - litex-hub::yosys=0.9
   - litex-hub::symbiflow-yosys-plugins
   - litex-hub::zachjs-sv2v=0.0.5_0025_ge9f9696=20201120_205532
   - cmake
