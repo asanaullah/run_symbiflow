@@ -130,7 +130,7 @@ ${DEVICE_FILE_DIR}/rr_graph_real.bin:
 
 
 build_symbiflow:
-	if [ -d "${SYMBIFLOW_DIR}/build" ]; then echo "Symbiflow build directory already exists - skipping"; else source ./setup.sh && cd ${SYMBIFLOW_DIR} && make env; fi
+	if [ -d "${SYMBIFLOW_DIR}/build" ]; then echo "Symbiflow build directory already exists - skipping"; else cp patches/* ${SYMBIFLOW_DIR}/ && cd ${SYMBIFLOW_DIR} && make env; fi
 
 
 	

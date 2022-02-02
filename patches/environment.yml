@@ -1,0 +1,36 @@
+name: symbiflow_arch_def_base
+channels:
+  - defaults
+  - litex-hub
+dependencies:
+  - litex-hub::capnproto-java=0.1.5_0012_g44a8c1e=20201104_165332
+  - litex-hub::capnproto=0.8.0=20210316_201220
+  - litex-hub::gcc-riscv64-elf-newlib=9.2.0=20201119_154229
+  - litex-hub::icestorm=0.0_0719_g792cef0=20201120_145821
+  - litex-hub::iverilog=s20150603_0957_gad862020=20201120_145821
+  - litex-hub::openocd=0.10.0_1514_ga8edbd020=20201119_154304
+  - litex-hub::prjxray-tools
+  - litex-hub::prjxray-db
+  - litex-hub::vtr-optimized
+  - litex-hub::yosys
+  - litex-hub::symbiflow-yosys-plugins
+  - litex-hub::zachjs-sv2v=0.0.5_0025_ge9f9696=20201120_205532
+  - cmake
+  - make
+  - flake8
+  - nodejs
+  - libiconv
+  # swig is required to build the rapidyaml package
+  # It can be removed once that is available in PyPi
+  - swig
+  # libxml2 2.9.10 contains an integer overflow fix required for arch-defs.
+  - libxml2>=2.9.10
+  # openjdk, libuuid, pkg-config, and cython are required to build the fasm package's ANTLR backend.
+  # They can be removed if fasm is packaged as a binary e.g. a wheel or Conda package.
+  - openjdk
+  - libuuid
+  - pkg-config
+  - cython
+  - pip
+  - pip:
+    - -r requirements.txt
