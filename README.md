@@ -4,6 +4,7 @@ Build steps:
 
  - Clone the repository using ```git clone --recursive https://github.com/asanaullah/run_symbiflow```
  - Change directory ```cd run_symbiflow```
+ - Set the XRAY_VIVADO_SETTINGS environment variable to point to settings64.sh in Vivado
  - Run ```make all```. This will build Symbiflow, extract device files, synthesize, pack, place, route, generated the FPGA assembly file, generate the bitstream, and finally program the board.
  
  
