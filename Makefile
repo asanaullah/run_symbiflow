@@ -12,7 +12,7 @@ PART=xc7a50tfgg484-1
 
 DEVICE_FILE_DIR=./${DEVICE_FAMILY}
 
-TECHMAP_DIR = ${SYMBIFLOW_DIR}/xc/xc7/techmap
+TECHMAP_DIR = ${SYMBIFLOW_DIR}/xilinx/xc7/techmap
 
 YOSYS=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/yosys
 
@@ -116,7 +116,7 @@ ${VERILOG_FILE}.json:  ${VERILOG_FILE}_synth.json
 	${PYTHON3} ${SYMBIFLOW_DIR}/utils/split_inouts.py -i $< -o $@
 
 ${VERILOG_FILE}_synth.json: 
-	${CMAKE} -E env TECHMAP_PATH=${TECHMAP_DIR} UTILS_PATH=${SYMBIFLOW_DIR}/utils DEVICE_CELLS_SIM= DEVICE_CELLS_MAP= OUT_JSON=$@ OUT_SYNTH_V=${VERILOG_FILE}_synth.v OUT_FASM_EXTRA=${VERILOG_FILE}_fasm_extra.fasm PART_JSON= INPUT_XDC_FILES= OUT_SDC=${VERILOG_FILE}_synth.sdc USE_ROI=TRUE PCF_FILE=${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf PINMAP_FILE=${DEVICE_FILE_DIR}/pinmap.csv PYTHON3=${PYTHON3} ${YOSYS} -p "tcl ${SYNTH_SCRIPTS_DIR}/synth.tcl; write_edif ${VERILOG_FILE}.edif" ${VERILOG_FILE}.v
+	${CMAKE} -E env TECHMAP_PATH=${TECHMAP_DIR} UTILS_PATH=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/lib/python3.7/site-packages/f4pga/utils/xc7 DEVICE_CELLS_SIM= DEVICE_CELLS_MAP= OUT_JSON=$@ OUT_SYNTH_V=${VERILOG_FILE}_synth.v OUT_FASM_EXTRA=${VERILOG_FILE}_fasm_extra.fasm PART_JSON= INPUT_XDC_FILES= OUT_SDC=${VERILOG_FILE}_synth.sdc USE_ROI=TRUE PCF_FILE=${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf PINMAP_FILE=${DEVICE_FILE_DIR}/pinmap.csv PYTHON3=${PYTHON3} ${YOSYS} -p "tcl ${SYNTH_SCRIPTS_DIR}/synth.tcl; write_edif ${VERILOG_FILE}.edif" ${VERILOG_FILE}.v
 
 
 
