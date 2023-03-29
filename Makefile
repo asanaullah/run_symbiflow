@@ -109,16 +109,10 @@ ${VERILOG_FILE}.net: ${VERILOG_FILE}.eblif
 	
 synth: ${VERILOG_FILE}.eblif
 
-${VERILOG_FILE}.eblif:${VERILOG_FILE}.json
-	${CMAKE} -E env symbiflow-arch-defs_SOURCE_DIR=${SYMBIFLOW_DIR} OUT_EBLIF=$@ ${YOSYS} -p "read_json $<; tcl ${SYNTH_SCRIPTS_DIR}/conv.tcl"
-
-${VERILOG_FILE}.json:  ${VERILOG_FILE}_synth.json
-	${PYTHON3} ${SYMBIFLOW_DIR}/utils/split_inouts.py -i $< -o $@
-
-${VERILOG_FILE}_synth.json: 
-	${CMAKE} -E env TECHMAP_PATH=${TECHMAP_DIR} UTILS_PATH=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/lib/python3.7/site-packages/f4pga/utils/xc7 DEVICE_CELLS_SIM= DEVICE_CELLS_MAP= OUT_JSON=$@ OUT_SYNTH_V=${VERILOG_FILE}_synth.v OUT_FASM_EXTRA=${VERILOG_FILE}_fasm_extra.fasm PART_JSON= INPUT_XDC_FILES= OUT_SDC=${VERILOG_FILE}_synth.sdc USE_ROI=TRUE PCF_FILE=${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf PINMAP_FILE=${DEVICE_FILE_DIR}/pinmap.csv PYTHON3=${PYTHON3} ${YOSYS} -p "tcl ${SYNTH_SCRIPTS_DIR}/synth.tcl; write_edif ${VERILOG_FILE}.edif" ${VERILOG_FILE}.v
-
-
+${VERILOG_FILE}.eblif:
+		${CMAKE} -E env TECHMAP_PATH=${TECHMAP_DIR} UTILS_PATH=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/lib/python3.7/site-packages/f4pga/utils/xc7 DEVICE_CELLS_SIM= DEVICE_CELLS_MAP= OUT_JSON=${VERILOG_FILE}_synth.json SYNTH_JSON=${VERILOG_FILE}.json OUT_EBLIF=${VERILOG_FILE}.eblif OUT_SYNTH_V=${VERILOG_FILE}_synth.v OUT_FASM_EXTRA=${VERILOG_FILE}_fasm_extra.fasm PART_JSON= INPUT_XDC_FILES= OUT_SDC=${VERILOG_FILE}_synth.sdc USE_ROI=FALSE PCF_FILE=${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf PINMAP_FILE=${DEVICE_FILE_DIR}/pinmap.csv PYTHON3=${PYTHON3} ${YOSYS} -p "tcl ${SYNTH_SCRIPTS_DIR}/synth.tcl" -l ${VERILOG_FILE}_synth_json.log ${VERILOG_FILE}.v
+#PART_JSON=/home/ahmed/work/Projects/PnR/RL/run_symbiflow/f4pga-arch-defs/env/conda/envs/f4pga_arch_def_base/share/symbiflow/prjxray-db/artix7/xc7a200tsbg484-1/part.json 
+#INPUT_XDC_FILES=/home/ahmed/work/Projects/PnR/RL/run_symbiflow/f4pga-arch-defs/build/xilinx/xc7/tests/common/nexys_video.xdc 
 
 
 extract_device_graph: ${DEVICE_FILE_DIR}/rr_graph_real.bin

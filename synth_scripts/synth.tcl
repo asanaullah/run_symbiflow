@@ -6,17 +6,69 @@ plugin -i params
 plugin -i sdc
 plugin -i design_introspection
 
+
 # Import the commands from the plugins to the tcl interpreter
 yosys -import
 
-source ./synth_scripts/utils.tcl
+
+# Update the CLKOUT[0-5]_PHASE and CLKOUT[0-5]_DUTY_CYCLE parameter values.
+# Due to the fact that Yosys doesn't support floating parameter values
+# i.e. treats them as strings, the parameter values need to be multiplied by 1000
+# for the PLL registers to have correct values calculated during techmapping.
+proc multiply_param { cell param_name multiplier } {
+    set param_value [getparam $param_name $cell]
+    if {$param_value ne ""} {
+        set new_param_value [expr int(round([expr $param_value * $multiplier]))]
+        setparam -set $param_name $new_param_value $cell
+        puts "Updated parameter $param_name of cell $cell from $param_value to $new_param_value"
+    }
+}
+
+proc update_pll_and_mmcm_params {} {
+    foreach cell [selection_to_tcl_list "t:PLLE2_ADV"] {
+        multiply_param $cell "CLKFBOUT_PHASE" 1000
+        for {set output 0} {$output < 6} {incr output} {
+            multiply_param $cell "CLKOUT${output}_PHASE" 1000
+            multiply_param $cell "CLKOUT${output}_DUTY_CYCLE" 100000
+        }
+    }
+
+    foreach cell [selection_to_tcl_list "t:MMCME2_ADV"] {
+        multiply_param $cell "CLKFBOUT_PHASE" 1000
+        for {set output 0} {$output < 7} {incr output} {
+            multiply_param $cell "CLKOUT${output}_PHASE" 1000
+            multiply_param $cell "CLKOUT${output}_DUTY_CYCLE" 100000
+        }
+        multiply_param $cell "CLKFBOUT_MULT_F" 1000
+        multiply_param $cell "CLKOUT0_DIVIDE_F" 1000
+    }
+}
+
+proc clean_processes {} {
+    proc_clean
+    proc_rmdead
+    proc_prune
+    proc_init
+    proc_arst
+    proc_mux
+    proc_dlatch
+    proc_dff
+    proc_memwr
+    proc_clean
+}
+
 
 # -flatten is used to ensure that the output eblif has only one module.
 # Some of symbiflow expects eblifs with only one module.
 #
+# To solve the carry chain congestion at the output, the synthesis step
+# needs to be executed two times.
+# abc9 seems to cause troubles if called multiple times in the flow, therefore
+# it gets called only at the last synthesis step
+#
 # Do not infer IOBs for targets that use a ROI.
 if { $::env(USE_ROI) == "TRUE" } {
-    synth_xilinx -flatten -abc9 -nosrl -noclkbuf -nodsp -noiopad -nowidelut 
+    synth_xilinx -flatten -nosrl -noclkbuf -nodsp -noiopad -nowidelut
 } else {
     # Read Yosys baseline library first.
     read_verilog -lib -specify +/xilinx/cells_sim.v
@@ -25,8 +77,11 @@ if { $::env(USE_ROI) == "TRUE" } {
     # Overwrite some models (e.g. IBUF with more parameters)
     read_verilog -lib $::env(TECHMAP_PATH)/iobs.v
 
-    # Re-targetting FD to FDREs
-    techmap -map  $::env(TECHMAP_PATH)/retarget.v
+    # TODO: This should eventually end up in upstream Yosys
+    #       as models such as FD are not currently supported
+    #       as being used in old FPGAs (e.g. Spartan6)
+    # Read in unsupported models
+    read_verilog -lib $::env(TECHMAP_PATH)/retarget.v
 
     if { [info exists ::env(TOP)] && $::env(TOP) != "" } {
         hierarchy -check -top $::env(TOP)
@@ -35,7 +90,7 @@ if { $::env(USE_ROI) == "TRUE" } {
     }
 
     # Start flow after library reading
-    synth_xilinx -flatten -abc9 -nosrl -noclkbuf -nodsp -iopad -nowidelut -run prepare:check 
+    synth_xilinx -flatten -nosrl -noclkbuf -nodsp -iopad -nowidelut -run prepare:check
 }
 
 # Check that post-synthesis cells match libraries.
@@ -49,7 +104,7 @@ if { [info exists ::env(INPUT_XDC_FILES)] && $::env(INPUT_XDC_FILES) != "" } {
   propagate_clocks
 }
 
-update_pll_params
+update_pll_and_mmcm_params
 
 # Write the SDC file
 #
@@ -132,8 +187,11 @@ read_verilog -specify -lib $::env(TECHMAP_PATH)/cells_sim.v
 #
 
 techmap -map  $::env(TECHMAP_PATH)/carry_map.v
+
+clean_processes
 write_json $::env(OUT_JSON).carry_fixup.json
-exec $::env(PYTHON3) $::env(UTILS_PATH)/fix_xc7_carry.py < $::env(OUT_JSON).carry_fixup.json > $::env(OUT_JSON).carry_fixup_out.json
+
+exec $::env(PYTHON3) -m f4pga.utils.xc7.fix_xc7_carry < $::env(OUT_JSON).carry_fixup.json > $::env(OUT_JSON).carry_fixup_out.json
 design -push
 read_json $::env(OUT_JSON).carry_fixup_out.json
 
@@ -154,7 +212,7 @@ write_ilang $::env(OUT_JSON).pre_abc9.ilang
 if { $::env(USE_ROI) == "TRUE" } {
     synth_xilinx -flatten -abc9 -nosrl -noclkbuf -nodsp -noiopad -nowidelut -run map_ffs:check
 } else {
-    synth_xilinx -flatten -abc9 -nosrl -noclkbuf -nodsp -iopad -nowidelut -run map_ffs:check 
+    synth_xilinx -flatten -abc9 -nosrl -noclkbuf -nodsp -iopad -nowidelut -run map_ffs:check
 }
 
 write_ilang $::env(OUT_JSON).post_abc9.ilang
@@ -181,6 +239,27 @@ stat
 attrmap -remove hdlname
 
 # Write the design in JSON format.
+clean_processes
 write_json $::env(OUT_JSON)
 # Write the design in Verilog format.
 write_verilog $::env(OUT_SYNTH_V)
+
+design -reset
+exec $::env(PYTHON3) -m f4pga.utils.yosys_split_inouts -i $::env(OUT_JSON) -o $::env(SYNTH_JSON)
+read_json $::env(SYNTH_JSON)
+yosys -import
+opt_clean
+# Designs that directly tie OPAD's to constants cannot use the dedicate
+# constant network as an artifact of the way the ROI is configured.
+# Until the ROI is removed, enable designs to selectively disable the dedicated
+# constant network.
+if { [info exists ::env(USE_LUT_CONSTANTS)] } {
+    write_blif -attr -cname -param \
+      $::env(OUT_EBLIF)
+} else {
+    write_blif -attr -cname -param \
+      -true VCC VCC \
+      -false GND GND \
+      -undef VCC VCC \
+    $::env(OUT_EBLIF)
+}
