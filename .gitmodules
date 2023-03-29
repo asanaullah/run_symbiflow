@@ -1,3 +1,6 @@
 [submodule "symbiflow-arch-defs"]
 	path = symbiflow-arch-defs
 	url = https://github.com/SymbiFlow/symbiflow-arch-defs
+[submodule "f4pga-arch-defs"]
+	path = f4pga-arch-defs
+	url = https://github.com/f4pga/f4pga-arch-defs
