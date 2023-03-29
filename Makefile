@@ -1,4 +1,4 @@
-SYMBIFLOW_DIR=./symbiflow-arch-defs
+SYMBIFLOW_DIR=./f4pga-arch-defs
 
 VERILOG_FILE=test
 
@@ -14,15 +14,15 @@ DEVICE_FILE_DIR=./${DEVICE_FAMILY}
 
 TECHMAP_DIR = ${SYMBIFLOW_DIR}/xc/xc7/techmap
 
-YOSYS=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/yosys
+YOSYS=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/yosys
 
-VPR=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/vpr
+VPR=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/vpr
 
-CMAKE=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/cmake
+CMAKE=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/cmake
 
-PYTHON3=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/python3
+PYTHON3=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/python3
 
-GENFASM=${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/genfasm
+GENFASM=${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/genfasm
 
 VPR_FLAGS= --echo_file on --max_router_iterations 500 --routing_failure_predictor off --router_high_fanout_threshold -1 --constant_net_method route --route_chan_width 500 --router_heap bucket --clock_modeling route --place_delta_delay_matrix_calculation_method dijkstra --place_delay_model delta --router_lookahead extended_map --check_route quick --strict_checks off --allow_dangling_combinational_nodes on --disable_errors check_unbuffered_edges:check_route --congested_routing_iteration_threshold 0.8 --incremental_reroute_delay_ripup off --base_cost_type delay_normalized_length_bounded --bb_factor 10 --acc_fac 0.7 --astar_fac 1.8 --initial_pres_fac 2.828 --pres_fac_mult 1.2 --check_rr_graph off --suppress_warnings noisy_warnings.log,sum_pin_class:check_unbuffered_edges:load_rr_indexed_data_T_values:check_rr_node:trans_per_R:check_route:set_rr_graph_tool_comment:calculate_average_switch
 
@@ -48,7 +48,7 @@ all: build_symbiflow extract_device_graph synth pack constrain place route fasm 
 
 
 prog: bitstream
-	${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/openocd -f ${SYMBIFLOW_DIR}/third_party/prjxray/utils/openocd/board-digilent-basys3.cfg -c "init ; pld load 0 ${VERILOG_FILE}.bit ; exit"
+	${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/openocd -f ${SYMBIFLOW_DIR}/third_party/prjxray/utils/openocd/board-digilent-basys3.cfg -c "init ; pld load 0 ${VERILOG_FILE}.bit ; exit"
 	
 
 
@@ -57,7 +57,7 @@ bitstream: ${VERILOG_FILE}.bit
 
 ${VERILOG_FILE}.bit: ${VERILOG_FILE}.fasm
 	cat ${VERILOG_FILE}.fasm > ${VERILOG_FILE}.merged.fasm
-	${CMAKE} -E env PYTHONPATH=${SYMBIFLOW_DIR}/build/env/conda/lib/python3.7/site-packages:${SYMBIFLOW_DIR}/third_party/prjxray:${SYMBIFLOW_DIR}/third_party/prjxray/third_party/fasm ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/xcfasm --db-root ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/share/symbiflow/prjxray-db/artix7 --sparse --emit_pudc_b_pullup --fn_in ${VERILOG_FILE}.merged.fasm --bit_out ${VERILOG_FILE}.bit --frm2bit ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/bin/xc7frames2bit --roi ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/share/symbiflow/prjxray-db/artix7/harness/arty-a7/swbut/design.json --part xc7a35tcsg324-1 --part_file ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/share/symbiflow/prjxray-db/artix7/xc7a35tcsg324-1/part.yaml 
+	${CMAKE} -E env PYTHONPATH=${SYMBIFLOW_DIR}/build/env/conda/lib/python3.7/site-packages:${SYMBIFLOW_DIR}/third_party/prjxray:${SYMBIFLOW_DIR}/third_party/prjxray/third_party/fasm ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/xcfasm --db-root ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/share/symbiflow/prjxray-db/artix7 --sparse --emit_pudc_b_pullup --fn_in ${VERILOG_FILE}.merged.fasm --bit_out ${VERILOG_FILE}.bit --frm2bit ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/bin/xc7frames2bit --roi ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/share/symbiflow/prjxray-db/artix7/harness/arty-a7/swbut/design.json --part xc7a35tcsg324-1 --part_file ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/share/symbiflow/prjxray-db/artix7/xc7a35tcsg324-1/part.yaml 
 
 
 
@@ -93,7 +93,7 @@ constrain: ${VERILOG_FILE}_constraints.place
 
 ${VERILOG_FILE}_constraints.place: ${VERILOG_FILE}.net
 	${CMAKE} -E env PYTHONPATH=${SYMBIFLOW_DIR}/utils ${PYTHON3} ${SYMBIFLOW_DIR}/xc/common/utils/prjxray_create_ioplace.py --map ${DEVICE_FILE_DIR}/pinmap.csv --blif ${VERILOG_FILE}.eblif --pcf ${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf --net $< --out ${VERILOG_FILE}_io.place
-	${CMAKE} -E env  PYTHONPATH=${SYMBIFLOW_DIR}/utils ${PYTHON3} ${SYMBIFLOW_DIR}/xc/common/utils/prjxray_create_place_constraints.py --net $< --arch ${DEVICE_FILE_DIR}/arch.timing.xml --blif ${VERILOG_FILE}.eblif --input /dev/stdin --output /dev/stdout --db_root ${SYMBIFLOW_DIR}/env/conda/envs/symbiflow_arch_def_base/share/symbiflow/prjxray-db --part ${PART} --vpr_grid_map ${DEVICE_FILE_DIR}/gridmap.csv --roi < ${VERILOG_FILE}_io.place > ${VERILOG_FILE}_constraints.place
+	${CMAKE} -E env  PYTHONPATH=${SYMBIFLOW_DIR}/utils ${PYTHON3} ${SYMBIFLOW_DIR}/xc/common/utils/prjxray_create_place_constraints.py --net $< --arch ${DEVICE_FILE_DIR}/arch.timing.xml --blif ${VERILOG_FILE}.eblif --input /dev/stdin --output /dev/stdout --db_root ${SYMBIFLOW_DIR}/env/conda/envs/f4pga_arch_def_base/share/symbiflow/prjxray-db --part ${PART} --vpr_grid_map ${DEVICE_FILE_DIR}/gridmap.csv --roi < ${VERILOG_FILE}_io.place > ${VERILOG_FILE}_constraints.place
 	${CMAKE} -E env  PYTHONPATH=${SYMBIFLOW_DIR}/utils ${PYTHON3} ${SYMBIFLOW_DIR}/xc/common/utils/prjxray_create_ioplace.py --map ${DEVICE_FILE_DIR}/pinmap.csv --blif ${VERILOG_FILE}.eblif --pcf ${DEVICE_FILE_DIR}/${DEVICE_FAMILY}.pcf --net $< --out ${VERILOG_FILE}_io.place
 
 
@@ -154,4 +154,4 @@ clean:
 	- rm *.blif
 	- rm *.dot
 	- rm *.fasm
-	cd symbiflow-arch-defs && make clean
+	cd f4pga-arch-defs && make clean
